@@ -28,26 +28,37 @@
             font-weight: bold;
             font-size: 20px;
         }
+        .marker {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #FF0000;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <h1>Object Distance Measurement</h1>
     <div id="video-container">
-        <img id="video" src="{{ url_for('video_feed') }}" width="640" height="480">
+        <img id="video" width="640" height="480">
         <div id="measurement"></div>
+        <div id="marker1" class="marker"></div>
+        <div id="marker2" class="marker"></div>
     </div>
     <script>
         var video = document.getElementById("video");
         var measurement = document.getElementById("measurement");
+        var marker1 = document.getElementById("marker1");
+        var marker2 = document.getElementById("marker2");
 
         var referencePoints = [];
 
-        // Click event listener
         video.addEventListener("click", function(event) {
             handleMeasurementEvent(event.offsetX, event.offsetY);
         });
 
-        // Touch event listener
         video.addEventListener("touchstart", function(event) {
             event.preventDefault();
             var touch = event.touches[0];
@@ -55,9 +66,24 @@
         });
 
         function handleMeasurementEvent(x, y) {
+            if (referencePoints.length >= 2) {
+                referencePoints = [];
+                measurement.innerHTML = "";
+                marker1.style.display = "none";
+                marker2.style.display = "none";
+            }
+
             referencePoints.push({ x: x, y: y });
 
-            if (referencePoints.length === 2) {
+            if (referencePoints.length === 1) {
+                marker1.style.display = "block";
+                marker1.style.left = x + "px";
+                marker1.style.top = y + "px";
+            } else if (referencePoints.length === 2) {
+                marker2.style.display = "block";
+                marker2.style.left = x + "px";
+                marker2.style.top = y + "px";
+
                 var distance = calculateDistance(referencePoints[0], referencePoints[1]);
                 measurement.innerHTML = "Distance: " + distance.toFixed(2) + " cm";
             }
@@ -75,5 +101,20 @@
             return objectWidth;
         }
     </script>
+    <script>
+        // JavaScript code to load the video stream
+        var videoUrl = "{{ url_for('video_feed') }}";
+        var videoElement = document.getElementById("video");
+
+        function loadVideo() {
+            videoElement.src = videoUrl;
+            videoElement.addEventListener("load", function() {
+                videoElement.play();
+            });
+        }
+
+        loadVideo();
+    </script>
 </body>
 </html>
+
